@@ -1,0 +1,28 @@
+---
+
+- name: Instala o keepalived
+  yum: name=keepalived state=present
+
+- name: configura keepalived
+  template: 
+    src: keepalived.conf.j2
+    dest: /etc/keepalived/keepalived.conf
+
+- name: configura o ip_forward
+  sysctl:
+    name: net.ipv4.ip_forward
+    value: 1
+    sysctl_set: yes
+    state: present
+    reload: yes
+
+- name: configure o firewall para permitir uso do vrrp
+  shell: firewall-cmd --direct --permanent --add-rule ipv4 filter INPUT 0 --in-interface {{ ansible_default_ipv4.interface }} --destination 224.0.0.18 --protocol vrrp -j ACCEPT && firewall-cmd --direct --permanent --add-rule ipv4 filter OUTPUT 0 --out-interface {{ ansible_default_ipv4.interface }} --destination 224.0.0.18 --protocol vrrp -j ACCEPT && firewall-cmd --reload
+
+
+- name: keepalived service state
+  systemd: 
+    name: keepalived
+    daemon_reload: yes 
+    state: restarted 
+    enabled: yes

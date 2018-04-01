@@ -1,0 +1,5 @@
+packer/output-virtualbox-iso
+packer/packer_cache
+openshift-ha-playbook/*.retry
+openshift-ha-playbook/lookup_plugins/*.pyc
+tmp/openshift-ansible

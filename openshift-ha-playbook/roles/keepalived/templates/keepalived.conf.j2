@@ -1,0 +1,46 @@
+! Configuration File for keepalived
+
+# configuração para notificar por email da queda dos serviços
+global_defs {
+#    notification_email {
+#      carlos.rodrigues@capes.gov.br
+#    }
+#    notification_email_from paas@capes.gov.br            
+#    smtp_server smtp.capes.gov.br
+#    smtp_connect_timeout 30
+}
+
+
+
+# script que checa se o serviço status está respondendo
+vrrp_script chk_service {
+  script       "{{vrrp_script}}"
+  interval 2   # check every 2 seconds
+  fall 2       # require 2 failures for KO
+  rise 2       # require 2 successes for OK
+}
+
+{% for host in groups[type] %}
+vrrp_instance VRRP{{loop.index}}  {
+    {% if loop.index-1 == groups[type].index(inventory_hostname)%}
+state MASTER
+    {% else %}
+state BACKUP
+    {% endif %}
+interface {{ ansible_default_ipv4.interface }}
+    virtual_router_id {{loop.index}}
+    priority 1{{lookup('rotate',inventory_hostname,groups[type]).split(',').index(host)}}
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass {{ha_vrrp_auth_pass}}
+    }
+    virtual_ipaddress {
+		{{ hostvars[host].ha_vrrp_cidr }}
+    }
+    track_script {
+        chk_service
+    }
+}
+
+{% endfor %}

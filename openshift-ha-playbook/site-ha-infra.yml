@@ -1,0 +1,11 @@
+---
+- name: Prepara a instalação openshift para alta disponibilidade
+  hosts: lb-app-nodes
+  remote_user: root
+  vars:
+    type: lb-app-nodes
+    vrrp_script: "/usr/bin/true"
+    vrrp_virtual_router_id: 41
+    ha_vrrp_auth_pass: "af4hs5"
+  roles:
+    - keepalived

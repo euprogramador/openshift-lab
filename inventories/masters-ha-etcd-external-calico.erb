@@ -1,0 +1,79 @@
+[OSEv3:children]
+masters
+nodes
+etcd
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+
+# o servidor usa firewalld
+os_firewall_use_firewalld=True
+
+ansible_ssh_user=root
+
+deployment_type=origin
+openshift_deployment_type=origin
+
+openshift_release=v3.7.1
+osm_use_cockpit=true
+
+openshift_disable_check=disk_availability,memory_availability,docker_storage,docker_image_availability,package_version
+
+
+# Calico network
+os_sdn_network_plugin_name=cni
+openshift_use_calico=true
+openshift_use_openshift_sdn=false
+openshift_node_proxy_mode=iptables
+
+
+
+# Uncomment the following to enable htpasswd authentication; defaults to
+# DenyAllPasswordIdentityProvider.
+# openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+
+# Native high availability cluster method with optional load balancer.
+# If no lb group is defined installer assumes that a load balancer has
+# been preconfigured. For installation the value of
+# openshift_master_cluster_hostname must resolve to the load balancer
+# or to one or all of the masters defined in the inventory if no load
+# balancer is present.
+openshift_master_cluster_method=native
+openshift_master_cluster_hostname=paas.cluster.nodes
+openshift_master_cluster_public_hostname=paas.cluster.nodes
+
+# usado para fazer o load balancer das aplicações
+openshift_master_default_subdomain=cluster.local
+
+# habilita a auditoria das operações relacionadas ao openshift
+openshift_master_audit_config={"enabled": true, "auditFilePath": "/var/log/openpaas-oscp-audit/openpaas-oscp-audit.log", "maximumFileRetentionDays": 14, "maximumFileSizeMegabytes": 500, "maximumRetainedFiles": 5}
+
+
+
+
+# host group for masters
+[masters]
+master-01.cluster.nodes ha_vrrp_cidr=192.168.1.201/24 openshift_ip=192.168.1.101
+master-02.cluster.nodes ha_vrrp_cidr=192.168.1.202/24 openshift_ip=192.168.1.102
+master-03.cluster.nodes ha_vrrp_cidr=192.168.1.203/24 openshift_ip=192.168.1.103
+
+# host group for etcd
+[etcd]
+etcd-01.cluster.nodes openshift_ip=192.168.1.51
+etcd-02.cluster.nodes openshift_ip=192.168.1.52
+etcd-03.cluster.nodes openshift_ip=192.168.1.53
+#master-01.cluster.nodes
+#master-02.cluster.nodes
+#master-03.cluster.nodes
+
+
+[nodes]
+master-01.cluster.nodes openshift_schedulable=false openshift_ip=192.168.1.101
+master-02.cluster.nodes openshift_schedulable=false openshift_ip=192.168.1.102
+master-03.cluster.nodes openshift_schedulable=false openshift_ip=192.168.1.103
+worker-01.cluster.nodes openshift_node_labels="{'region': 'infra', 'zone': 'default'}" openshift_ip=192.168.1.91
+worker-02.cluster.nodes openshift_node_labels="{'region': 'infra', 'zone': 'default'}" openshift_ip=192.168.1.92
+
+[lb-app-nodes]
+worker-01.cluster.nodes ha_vrrp_cidr=192.168.1.81/24
+worker-02.cluster.nodes ha_vrrp_cidr=192.168.1.82/24
