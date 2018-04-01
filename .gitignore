@@ -1,4 +1,6 @@
 packer/output-virtualbox-iso
+packer/output-iso-gateway
+packer/output-iso-base
 packer/packer_cache
 openshift-ha-playbook/*.retry
 openshift-ha-playbook/lookup_plugins/*.pyc

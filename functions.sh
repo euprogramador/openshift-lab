@@ -2,7 +2,7 @@
 
 
 function create_gateway() {
-    vboxmanage import packer/output-virtualbox-iso/centos-7-x86_64-gateway.ovf
+    vboxmanage import packer/output-iso-gateway/centos-7-x86_64-gateway.ovf
     sleep 1
 
     vboxmanage modifyvm "centos-7-x86_64-gateway" --name=gateway \
@@ -15,10 +15,10 @@ function create_gateway() {
 
 
 function create_vm() {
-    vboxmanage import packer/output-virtualbox-iso/packer-centos-7-x86_64.ovf
+    vboxmanage import packer/output-iso-base/centos-7-x86_64-base.ovf
     sleep 1
 
-    vboxmanage modifyvm packer-centos-7-x86_64 --name=$1 \
+    vboxmanage modifyvm centos-7-x86_64-base --name=$1 \
       --nic1=intnet --intnet1=openshift \
       --memory=$2
 
