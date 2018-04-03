@@ -1,5 +1,48 @@
 #!/bin/bash
 
+black=`tput setaf 0`
+red=`tput setaf 1`
+green=`tput setaf 2`
+yellow=`tput setaf 3`
+blue=`tput setaf 4`
+magenta=`tput setaf 5`
+cyan=`tput setaf 6`
+white=`tput setaf 7`
+
+bg_black=`tput setab 0`
+bg_red=`tput setab 1`
+bg_green=`tput setab 2`
+bg_yellow=`tput setab 3`
+bg_blue=`tput setab 4`
+bg_magenta=`tput setab 5`
+bg_cyan=`tput setab 6`
+bg_white=`tput setab 7`
+green=`tput setab 2`
+reset=`tput sgr0`
+
+function pad() {
+    tam=${1:-0}
+    i="0"
+    while [ $i -lt $tam ]
+    do
+        forty="$forty "
+        i=$(($i+1))
+    done
+
+    y=$2    
+    y="${y:0:$tam}${forty:0:$(($tam - ${#y}))}"
+    echo "$y"
+}
+
+function print() {
+    y=$(pad "$1" "$2")
+    echo "${bg_black}${yellow}${y}${reset}"
+}
+
+function error(){
+    y=$(pad "$1" "$2")
+    echo "${bg_red}${white}${y}${reset}"
+}
 
 function create_gateway() {
     vboxmanage import packer/output-iso-gateway/centos-7-x86_64-gateway.ovf
@@ -9,7 +52,7 @@ function create_gateway() {
     --nic1=intnet --intnet1=openshift \
     --nic2=hostonly --hostonlyadapter2=vboxnet0 --intnet2=none
 
-     vboxmanage startvm gateway
+     vboxmanage startvm gateway --type headless
 }
 
 
@@ -24,7 +67,7 @@ function create_vm() {
 
 
     sleep 1
-    vboxmanage startvm $1
+    vboxmanage startvm $1 --type headless
 
     while true
     do
@@ -54,7 +97,7 @@ EOL
     vboxmanage controlvm $1 poweroff soft
 
     sleep 1
-    vboxmanage startvm $1
+    vboxmanage startvm $1 --type headless
 }
 
 function destroy_vm() {

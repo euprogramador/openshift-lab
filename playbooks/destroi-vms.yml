@@ -1,0 +1,12 @@
+---
+- hosts: nodes
+  serial: 1
+  tasks:
+    - name: Desliga máquina
+      shell: vboxmanage controlvm {{hostvars[inventory_hostname].vm_nome}} poweroff || true
+
+    - name: aguarda a saida da máquina {{hostvars[inventory_hostname].vm_nome}} 
+      shell: for((i=1;i<=60;i+=1)); do if [[ $(VBoxManage list runningvms | sed -r 's/^"(.*)".*$/\1/' | grep {{hostvars[inventory_hostname].vm_nome}} | wc -l) -eq 0 ]]; then break; fi; sleep 1; done
+
+    - name: remove
+      shell: vboxmanage unregistervm {{hostvars[inventory_hostname].vm_nome}} --delete || true

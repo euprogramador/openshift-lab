@@ -1,5 +1,19 @@
 #!/bin/bash
 
+# habilita proxy scks para a instalação
+export http_proxy=socks5://192.168.99.1:11000
+
+# instala pacotes básicos
+yum install -y make bzip2 openssh-clients nano htop wget automake gcc cpp glibc-devel glibc-headers \
+glibc-kernheaders glibc glibc-common libgcc zlib-devel openssl-devel readline-devel 
+
+ yum install wget git net-tools bind-utils iptables-services bridge-utils bash-completion kexec-tools sos psacct openssl
+
+wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm 
+rpm -ivh epel-release-latest-7.noarch.rpm
+
+yum update -y
+
 
 # configura o ssh para um login rápido
 echo "UseDNS no" >>/etc/ssh/sshd_config
@@ -27,13 +41,3 @@ IPV6_AUTOCONF=yes
 IPV6_DEFROUTE=yes
 IPV6_FAILURE_FATAL=no
 EOL
-
-
-# instala pacotes básicos
-yum install -y make bzip2 openssh-clients nano htop wget automake gcc cpp glibc-devel glibc-headers \
-glibc-kernheaders glibc glibc-common libgcc zlib-devel openssl-devel readline-devel 
-
-wget http://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm 
-rpm -ivh epel-release-latest-7.noarch.rpm
-
-yum update -y

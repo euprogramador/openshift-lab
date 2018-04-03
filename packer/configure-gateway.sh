@@ -54,6 +54,8 @@ DOMAIN=cluster.nodes
 ZONE=public
 EOL
 
+# habilita proxy scks para a instalação
+export http_proxy=socks5://192.168.99.1:11000
 
 # instala pacotes de base necessários
 yum install -y make bzip2 openssh-clients nano htop wget automake gcc cpp glibc-devel glibc-headers \

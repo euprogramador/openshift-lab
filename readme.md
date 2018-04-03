@@ -12,7 +12,7 @@ passo 2 => adicionar rota para gateway da rede interna (openshift)
   sudo ip route add 192.168.1.0/24 via 192.168.99.5 dev vboxnet0
 
 passo 3 => dar acesso a internet para maquinas
-  ssh <usuario>@<ip> -D 192.168.99.1:11000
+  ssh <usuario>@<ip> -D 192.168.99.1:11000 -nNT
   este comando inicia um servidor socks no endereço remoto via ssh, este endereço é usado internamente na rede para prover acesso a internet.
 
 passo 4 => criar receitas de base

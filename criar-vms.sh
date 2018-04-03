@@ -16,20 +16,22 @@ destroy_vm master-03
 destroy_vm worker-01
 destroy_vm worker-02
 
+destroy_vm infra-01
+destroy_vm infra-02
+
 echo "removidas."
 
 echo "criando ambientes..."
 
 create_gateway
 
-create_vm etcd-01 1024 192.168.1.51
-create_vm etcd-02 1024 192.168.1.52
-create_vm etcd-03 1024 192.168.1.53
+create_vm master-01 4096 192.168.1.101
+create_vm master-02 4096 192.168.1.102
+create_vm master-03 4096 192.168.1.103
 
-create_vm master-01 1024 192.168.1.101
-create_vm master-02 1024 192.168.1.102
-create_vm master-03 1024 192.168.1.103
+create_vm worker-01 6144 192.168.1.91
+create_vm worker-02 6144 192.168.1.92
 
-create_vm worker-01 10240 192.168.1.91
-create_vm worker-02 10240 192.168.1.92
+create_vm infra-01 4096 192.168.1.93
+create_vm infra-02 4096 192.168.1.94
 

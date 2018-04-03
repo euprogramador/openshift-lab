@@ -1,0 +1,45 @@
+---
+- hosts: nodes
+  serial: 1
+  tasks:
+    - name: importa máquina virtual
+      shell: vboxmanage import ../packer/output-iso-base/centos-7-x86_64-base.ovf && sleep 1
+    
+    - name: modificar vm
+      shell:   vboxmanage modifyvm centos-7-x86_64-base --name={{hostvars[inventory_hostname].vm_nome}} --nic1=intnet --intnet1=openshift --memory={{hostvars[inventory_hostname].vm_memoria}} && sleep 1
+
+    - name: inicia vm
+      shell:   vboxmanage startvm {{hostvars[inventory_hostname].vm_nome}} --type headless
+
+    - name: aguarda maquina iniciar para configurar
+      wait_for:
+        host: 192.168.1.2
+        port: 22
+        delay: 3
+        state: started
+    
+    - name: gera script de configuração de rede
+      copy:
+        content: |
+          #!/bin/bash
+          nmcli con mod enp0s3 ipv4.method manual ipv4.addresses {{hostvars[inventory_hostname].vm_ip}}/24 ipv4.gateway 192.168.1.1 ipv4.dns 192.168.99.1 ipv4.dns-search cluster.nodes
+          nmcli con show enp0s3
+          systemctl restart systemd-hostnamed
+          systemctl restart network 
+        dest: /tmp/script.sh
+
+    - name: concede permissão de execução para o script de configuração de rede
+      shell: chmod +x /tmp/script.sh
+      ignore_warnings: yes
+    
+    - name: envia script para novo servidor
+      shell: sshpass -p root scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no /tmp/script.sh root@192.168.1.2:/tmp 
+
+    - name: solicita execução do script de configuração
+      shell: timeout 3 sshpass -p root ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@192.168.1.2 "/tmp/script.sh" 2>&1 || true
+    
+    - name: desliga servidor
+      shell:  vboxmanage controlvm {{hostvars[inventory_hostname].vm_nome}} poweroff soft && sleep 1
+
+    - name: inicia vm
+      shell:   vboxmanage startvm {{hostvars[inventory_hostname].vm_nome}} --type headless
