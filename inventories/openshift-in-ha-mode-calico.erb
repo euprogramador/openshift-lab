@@ -1,0 +1,91 @@
+[OSEv3:children]
+masters
+nodes
+etcd
+
+# Set variables common for all OSEv3 hosts
+[OSEv3:vars]
+
+# o servidor usa firewalld
+os_firewall_use_firewalld=True
+
+ansible_ssh_user=root
+
+#deployment_type=origin
+openshift_deployment_type=origin
+
+openshift_release=v3.9
+
+# a versão ainda não foi disponibilizada via rpm
+# portanto até ser disponibilizado tem que ter esta variavel
+openshift_repos_enable_testing=True
+
+
+openshift_disable_check=disk_availability,memory_availability,docker_storage,docker_image_availability,package_version
+
+# usa o servidor ntp
+openshift_clock_enabled=true
+
+openshift_docker_options="--selinux-enabled --insecure-registry=172.30.0.0/16 --log-opt max-size=1M --log-opt max-file=3"
+
+# Calico network
+os_sdn_network_plugin_name=cni
+openshift_use_calico=true
+openshift_use_openshift_sdn=false
+
+#os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+
+openshift_master_api_port=443
+openshift_master_console_port=443
+
+openshift_template_service_broker_namespaces=['openshift']
+
+# remove o catalogo não necessário para os testes de alta disponibilidade do cluster
+openshift_enable_service_catalog=false
+
+
+# Uncomment the following to enable htpasswd authentication; defaults to
+# DenyAllPasswordIdentityProvider.
+# openshift_master_identity_providers=[{'name': 'htpasswd_auth', 'login': 'true', 'challenge': 'true', 'kind': 'HTPasswdPasswordIdentityProvider', 'filename': '/etc/origin/master/htpasswd'}]
+
+# Native high availability cluster method with optional load balancer.
+# If no lb group is defined installer assumes that a load balancer has
+# been preconfigured. For installation the value of
+# openshift_master_cluster_hostname must resolve to the load balancer
+# or to one or all of the masters defined in the inventory if no load
+# balancer is present.
+openshift_master_cluster_method=native
+openshift_master_cluster_hostname=paas.cluster.nodes
+openshift_master_cluster_public_hostname=paas.cluster.nodes
+
+# usado para fazer o load balancer das aplicações
+openshift_master_default_subdomain=cluster.local
+
+# habilita a auditoria das operações relacionadas ao openshift
+openshift_master_audit_config={"enabled": true, "auditFilePath": "/var/log/openpaas-oscp-audit/openpaas-oscp-audit.log", "maximumFileRetentionDays": 14, "maximumFileSizeMegabytes": 500, "maximumRetainedFiles": 5}
+
+
+# host group for masters
+[masters]
+master-01.cluster.nodes ha_vrrp_cidr=192.168.1.201/24 
+master-02.cluster.nodes ha_vrrp_cidr=192.168.1.202/24 
+master-03.cluster.nodes ha_vrrp_cidr=192.168.1.203/24 
+
+# host group for etcd
+[etcd]
+master-01.cluster.nodes 
+master-02.cluster.nodes 
+master-03.cluster.nodes
+
+[nodes]
+master-01.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=vmaster-01 vm_ip=192.168.1.101 vm_memoria=4096
+master-02.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=vmaster-02 vm_ip=192.168.1.102 vm_memoria=4096
+master-03.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=vmaster-03 vm_ip=192.168.1.103 vm_memoria=4096
+infra-01.cluster.nodes openshift_node_labels="{'region': 'infra', 'zone': 'default'}" vm_nome=vinfra-01 vm_ip=192.168.1.93 vm_memoria=4096
+infra-02.cluster.nodes openshift_node_labels="{'region': 'infra', 'zone': 'default'}" vm_nome=vinfra-02 vm_ip=192.168.1.94 vm_memoria=4096
+worker-01.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=vworker-01 vm_ip=192.168.1.91 vm_memoria=6144
+worker-02.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=vworker-02 vm_ip=192.168.1.92 vm_memoria=6144
+
+[lb-app-nodes]
+infra-01.cluster.nodes ha_vrrp_cidr=192.168.1.83/24
+infra-02.cluster.nodes ha_vrrp_cidr=192.168.1.84/24

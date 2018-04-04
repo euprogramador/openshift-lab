@@ -2,12 +2,29 @@
 
 source functions.sh
 
-INVENTORY=$1
+
+
 
 print 100 
 print 100 "Receita para instalação do openshift"
 print 100 "===================================================================================================="
 print 100 ""
+print 100 "Selecione uma receita para instalação:"
+print 100 ""
+
+select INVENTORY in $(ls -h inventories/*)
+do
+
+if [ -f "$INVENTORY" ]
+then
+    break;
+else
+    echo "Selecione corretamente!"
+fi
+done
+
+
+
 print 100 "Instalando a receita: ${INVENTORY}"
 print 100 ""
 
@@ -48,7 +65,7 @@ else
 fi
 
 # valida dns
-SAIDA=$(ansible nodes -i inventories/$INVENTORY.erb -c local -m shell -a 'if [[ $(dig {{inventory_hostname}} +short | wc -l) -eq 1 ]]; then exit 0; else exit 1; fi')
+SAIDA=$(ansible nodes -i $INVENTORY -c local -m shell -a 'if [[ $(dig {{inventory_hostname}} +short | wc -l) -eq 1 ]]; then exit 0; else exit 1; fi')
 if [ $? -eq 0 ]; then
     print 100 "   [OK] - DNS devidamente configurado"
 else
@@ -64,7 +81,7 @@ fi
 
 
 # valida reverso
-SAIDA=$(ansible nodes -i inventories/$INVENTORY.erb -c local -m shell -a 'if [[ $(host $(dig {{inventory_hostname}} +short) | grep {{inventory_hostname}} | wc -l) -eq 1 ]]; then exit 0; else exit 1; fi')
+SAIDA=$(ansible nodes -i $INVENTORY -c local -m shell -a 'if [[ $(host $(dig {{inventory_hostname}} +short) | grep {{inventory_hostname}} | wc -l) -eq 1 ]]; then exit 0; else exit 1; fi')
 if [ $? -eq 0 ]; then
     print 100 "   [OK] - DNS reverso devidamente configurado"
 else
@@ -83,7 +100,7 @@ print 100
 print 100 "Iniciando preparação do ambiente..."
 
 
-case "$2" in 
+case "$1" in 
     --retry)
         print 100 "   [SKIP] - Iniciando preparação do ambiente..."
         print 100 
@@ -92,7 +109,7 @@ case "$2" in
     *) 
 
         print 100 "   Efetuando a limpeza do ssh-keygen..."
-        ansible nodes -i inventories/$INVENTORY.erb -c local -m shell -a 'ssh-keygen -R {{inventory_hostname}}' > /dev/null
+        ansible nodes -i $INVENTORY -c local -m shell -a 'ssh-keygen -R {{inventory_hostname}}' > /dev/null
             print 100 "      [OK] - chaves ssh limpas."
 
         print 100 "   Criando imagens de base..."
@@ -212,14 +229,14 @@ print 100 "Iniciando a instalação..."
 print 100
 print 100 "   Executando playbook..."
 
-SAIDA=$(ansible nodes -i inventories/$INVENTORY.erb -c local -m shell -a "if [[ {{ groups['masters'] | length }} -eq 1 ]]; then exit 0; else exit 1; fi" 2>&1 > /dev/null)
+SAIDA=$(ansible nodes -i $INVENTORY -c local -m shell -a "if [[ {{ groups['masters'] | length }} -eq 1 ]]; then exit 0; else exit 1; fi" 2>&1 > /dev/null)
 if [ $? -eq 0 ]; then
     print 100
     print 100 "      [SKIP] - há apenas um servidor master."
     print 100 "               não será configurado HA (High Avaliability) para servidores masters"
 else
     print 100 "      Configurando servidores masters em modo HA, acompanhe no logs/install-ha-masters.log"
-    SAIDA=$(ANSIBLE_HOST_KEY_CHECKING=False sshpass -p root ansible-playbook -i inventories/$INVENTORY.erb playbooks/openshift-ha-playbook/site-ha-masters.yml -u root --ask-pass 2>&1 > logs/install-ha-masters.log)
+    SAIDA=$(ANSIBLE_HOST_KEY_CHECKING=False sshpass -p root ansible-playbook -i $INVENTORY playbooks/openshift-ha-playbook/site-ha-masters.yml -u root --ask-pass 2>&1 > logs/install-ha-masters.log)
     if [ $? -eq 0 ]; then
         print 100 "      [OK] - Servidores masters em modo HA"
     else
@@ -234,14 +251,14 @@ fi
 
 
 
-SAIDA=$(ansible nodes -i inventories/$INVENTORY.erb -c local -m shell -a "if [[ {{ groups['lb-app-nodes'] | length }} -eq 1 ]]; then exit 0; else exit 1; fi" 2>&1 > /dev/null)
+SAIDA=$(ansible nodes -i $INVENTORY -c local -m shell -a "if [[ {{ groups['lb-app-nodes'] | length }} -eq 1 ]]; then exit 0; else exit 1; fi" 2>&1 > /dev/null)
 if [ $? -eq 0 ]; then
     print 100
     print 100 "      [SKIP] - há apenas um servidor infra."
     print 100 "               não será configurado HA (High Avaliability) para servidores infra"
 else
     print 100 "      Configurando servidores infra em modo HA, acompanhe no logs/install-ha-infra.log"
-    SAIDA=$(ANSIBLE_HOST_KEY_CHECKING=False sshpass -p root ansible-playbook -i inventories/$INVENTORY.erb playbooks/openshift-ha-playbook/site-ha-infra.yml -u root --ask-pass 2>&1 >logs/install-ha-infra.log)
+    SAIDA=$(ANSIBLE_HOST_KEY_CHECKING=False sshpass -p root ansible-playbook -i $INVENTORY playbooks/openshift-ha-playbook/site-ha-infra.yml -u root --ask-pass 2>&1 >logs/install-ha-infra.log)
     if [ $? -eq 0 ]; then
         print 100 "      [OK] - Servidores infra em modo HA"
     else
@@ -255,7 +272,7 @@ else
 fi
 
 print 100 "      Validando Pré requisitos para instalação, acompanhe no logs/install-prerequisites.log"
-SAIDA=$(ANSIBLE_HOST_KEY_CHECKING=False sshpass -p root ansible-playbook -i inventories/$INVENTORY.erb tmp/openshift-ansible/playbooks/prerequisites.yml -u root --ask-pass 2>&1 >logs/install-prerequisites.log)
+SAIDA=$(ANSIBLE_HOST_KEY_CHECKING=False sshpass -p root ansible-playbook -i $INVENTORY tmp/openshift-ansible/playbooks/prerequisites.yml -u root --ask-pass 2>&1 >logs/install-prerequisites.log)
 RET=$?
 if [ $RET -eq 0 ]; then
     print 100 "      [OK] - Pré requisitos para instalação do openshift"
@@ -271,7 +288,7 @@ fi
 
 
 print 100 "      Instalando openshift, acompanhe no logs/install-deploy_cluster.log"
-SAIDA=$(ANSIBLE_HOST_KEY_CHECKING=False sshpass -p root ansible-playbook -i inventories/$INVENTORY.erb tmp/openshift-ansible/playbooks/deploy_cluster.yml -u root --ask-pass 2>&1 >logs/install-deploy_cluster.log)
+SAIDA=$(ANSIBLE_HOST_KEY_CHECKING=False sshpass -p root ansible-playbook -i $INVENTORY tmp/openshift-ansible/playbooks/deploy_cluster.yml -u root --ask-pass 2>&1 >logs/install-deploy_cluster.log)
 RET=$?
 if [ $RET -eq 0 ]; then
     print 100 "      [OK] - Instalando openshift"
