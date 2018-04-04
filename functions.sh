@@ -44,6 +44,11 @@ function error(){
     echo "${bg_red}${white}${y}${reset}"
 }
 
+function success(){
+    y=$(pad "$1" "$2")
+    echo "${bg_green}${white}${y}${reset}"
+}
+
 function create_gateway() {
     vboxmanage import packer/output-iso-gateway/centos-7-x86_64-gateway.ovf
     sleep 1
