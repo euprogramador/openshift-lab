@@ -26,14 +26,10 @@ openshift_disable_check=disk_availability,memory_availability,docker_storage,doc
 # usa o servidor ntp
 openshift_clock_enabled=true
 
-openshift_docker_options="--selinux-enabled --insecure-registry=172.30.0.0/16 --registry-mirror=http://172.19.30.219:5000 --log-opt max-size=1M --log-opt max-file=3"
+openshift_docker_options="--selinux-enabled --insecure-registry=172.30.0.0/16  --log-opt max-size=1M --log-opt max-file=3"
 
-# Calico network
-os_sdn_network_plugin_name=cni
-openshift_use_calico=true
-openshift_use_openshift_sdn=false
 
-#os_sdn_network_plugin_name='redhat/openshift-ovs-multitenant'
+os_sdn_network_plugin_name='redhat/openshift-ovs-networkpolicy'
 
 openshift_master_api_port=443
 openshift_master_console_port=443
@@ -65,28 +61,40 @@ openshift_master_default_subdomain=cluster.local
 openshift_master_audit_config={"enabled": true, "auditFilePath": "/var/log/openpaas-oscp-audit/openpaas-oscp-audit.log", "maximumFileRetentionDays": 14, "maximumFileSizeMegabytes": 500, "maximumRetainedFiles": 5}
 
 
+
+
+openshift_hosted_registry_storage_kind=nfs
+openshift_hosted_registry_storage_access_modes=['ReadWriteMany']
+openshift_hosted_registry_nfs_options='*(rw,root_squash)'
+openshift_hosted_registry_storage_host=192.168.99.1
+openshift_hosted_registry_storage_nfs_directory=/openshift
+openshift_hosted_registry_storage_volume_name=registry
+openshift_hosted_registry_storage_volume_size=10Gi
+
 # host group for masters
 [masters]
 master-01.cluster.nodes ha_vrrp_cidr=192.168.1.201/24 
-master-02.cluster.nodes ha_vrrp_cidr=192.168.1.202/24 
-master-03.cluster.nodes ha_vrrp_cidr=192.168.1.203/24 
+#master-02.cluster.nodes ha_vrrp_cidr=192.168.1.202/24 
+#master-03.cluster.nodes ha_vrrp_cidr=192.168.1.203/24 
 
 # host group for etcd
 [etcd]
 master-01.cluster.nodes 
-master-02.cluster.nodes 
-master-03.cluster.nodes
+#master-02.cluster.nodes 
+#master-03.cluster.nodes
 
 [nodes]
-master-01.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=master-01 vm_ip=192.168.1.101 vm_memoria=4096
-master-02.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=master-02 vm_ip=192.168.1.102 vm_memoria=4096
-master-03.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=master-03 vm_ip=192.168.1.103 vm_memoria=4096
-infra-01.cluster.nodes openshift_node_labels="{'region': 'infra', 'zone': 'default'}" vm_nome=infra-01 vm_ip=192.168.1.93 vm_memoria=4096
-infra-02.cluster.nodes openshift_node_labels="{'region': 'infra', 'zone': 'default'}" vm_nome=infra-02 vm_ip=192.168.1.94 vm_memoria=4096
-worker-01.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=worker-01 vm_ip=192.168.1.91 vm_memoria=6144
-worker-02.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=worker-02 vm_ip=192.168.1.92 vm_memoria=6144
+master-01.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=ovs-np-master-01 vm_ip=192.168.1.101 vm_memoria=4096
+infra-01.cluster.nodes openshift_node_labels="{'region': 'infra', 'zone': 'default'}" vm_nome=ovs-np-infra-01 vm_ip=192.168.1.93 vm_memoria=2048
+worker-01.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=ovs-np-worker-01 vm_ip=192.168.1.91 vm_memoria=15360
+
+[no]
+#master-02.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=ovs-np-master-02 vm_ip=192.168.1.102 vm_memoria=4096
+#master-03.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=ovs-np-master-03 vm_ip=192.168.1.103 vm_memoria=4096
+#infra-02.cluster.nodes openshift_node_labels="{'region': 'infra', 'zone': 'default'}" vm_nome=ovs-np-infra-02 vm_ip=192.168.1.94 vm_memoria=2048
+#worker-02.cluster.nodes openshift_node_labels="{'zone': 'default'}" vm_nome=ovs-np-worker-02 vm_ip=192.168.1.92 vm_memoria=8192
 
 [lb-app-nodes]
 infra-01.cluster.nodes ha_vrrp_cidr=192.168.1.83/24
-infra-02.cluster.nodes ha_vrrp_cidr=192.168.1.84/24
+#infra-02.cluster.nodes ha_vrrp_cidr=192.168.1.84/24
 

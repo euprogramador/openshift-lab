@@ -56,6 +56,7 @@ EOL
 
 # habilita proxy scks para a instalação
 export http_proxy=socks5://192.168.99.1:11000
+export https_proxy=socks5://192.168.99.1:11000
 
 # instala pacotes de base necessários
 yum install -y make bzip2 openssh-clients nano htop wget automake gcc cpp glibc-devel glibc-headers \
@@ -93,7 +94,7 @@ iptables -F
 iptables -t nat -F
 
 # redireciona para o proxy transparente
-iptables -t nat -A PREROUTING -s 192.168.1.0/24 ! -d 192.168.1.0/24 -p tcp -j DNAT --to 192.168.1.1:7070
+iptables -t nat -A PREROUTING -s 192.168.1.0/24 ! -d 192.168.0.0/16  -p tcp -j DNAT --to 192.168.1.1:7070
 
 # habilita mascaramento de entrada e saida 
 iptables -t nat -A POSTROUTING  -o enp0s8 -j MASQUERADE

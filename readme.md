@@ -8,6 +8,8 @@ passo 1 => iniciar um servidor dns, e configurar corretamente o dns reverso para
   docker run --name bind -d --restart=always   --publish 192.168.99.1:53:53/tcp --publish 192.168.99.1:53:53/udp --publish 10000:10000/tcp   --volume /srv/docker/bind:/data   sameersbn/bind:9.10.3-20180127
   esta imagem docker executa um bind que pode ser configurado via webmin https://192.168.99.1:10000
 
+docker run -d --name nfs --net=host --privileged -v /home/carlosr/Documentos/storage:/nfsshare -e SYNC=true -e SHARED_DIRECTORY=/nfsshare itsthenetwork/nfs-server-alpine:latest
+
 passo 2 => adicionar rota para gateway da rede interna (openshift)
   sudo ip route add 192.168.1.0/24 via 192.168.99.5 dev vboxnet0
 

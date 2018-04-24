@@ -120,7 +120,7 @@ case "$1" in
             print 100 "      [OK] - máquina centos-7-base já existe."
         else
             print 100 "      [OK] - máquina centos-7-base não existe, criando máquina, log do processo em: logs/centos-7-base.build.log"
-            packer build --force centos-7-base.json >  ../log/centos-7-base.build.log
+            packer build --force centos-7-base.json >  ../logs/centos-7-base.build.log
         fi
 
         file="$(pwd)/output-iso-gateway/centos-7-x86_64-gateway.ovf"
@@ -129,7 +129,7 @@ case "$1" in
             print 100 "      [OK] - máquina centos-7-gateway já existe."
         else
             print 100 "      [OK] - máquina centos-7-gateway não existe, criando máquina, log do processo em: logs/centos-7-gateway.build.log"
-            packer build --force centos-7-gateway.json >  ../log/centos-7-gateway.build.log
+            packer build --force centos-7-gateway.json >  ../logs/centos-7-gateway.build.log
         fi
         cd ..
 
@@ -142,7 +142,7 @@ case "$1" in
         SAIDA=$(vboxmanage unregistervm gateway --delete 2>&1 >> logs/destroy-vms.log)
         print 100 "      [OK] - removido máquina gateway"
 
-        ansible-playbook -c local -i inventories/openshift-in-ha-mode.erb playbooks/destroi-vms.yml 2>&1 >> logs/destroy-vms.log
+        ansible-playbook -c local -i $INVENTORY playbooks/destroi-vms.yml 2>&1 >> logs/destroy-vms.log
         if [ $? -eq 0 ]; then
             print 100 "      [OK] - máquinas virtuais removidas"
         else
@@ -191,7 +191,7 @@ case "$1" in
         print 100 "      Criando máquinas virtuais..."
 
 
-        SAIDA=$(ansible-playbook -c local -i inventories/openshift-in-ha-mode.erb playbooks/cria-vms.yml 2>&1 > logs/cria-vms.log)
+        SAIDA=$(ansible-playbook -c local -i $INVENTORY playbooks/cria-vms.yml 2>&1 >> logs/cria-vms.log)
         if [ $? -eq 0 ]; then
             print 100 "      [OK] - máquinas virtuais criadas"
         else
@@ -208,7 +208,7 @@ case "$1" in
         print 
         print 100 "   Verificando connectividade com as máquinas..."
         sleep  30
-        ansible nodes -i inventories/openshift-in-ha-mode.erb -c local -m shell -a "timeout 3 sshpass -p root ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ inventory_hostname }} 'echo success'" 2>&1 > logs/verifica-conectividade.log
+        ansible nodes -i $INVENTORY -c local -m shell -a "timeout 3 sshpass -p root ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no  root@{{ inventory_hostname }} 'echo success'" 2>&1 > logs/verifica-conectividade.log
         if [ $? -eq 0 ]; then
             print 100 "   [OK] - máquinas virtuais acessíveis"
         else
